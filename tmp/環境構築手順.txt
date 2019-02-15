@@ -1,0 +1,17 @@
+
+# 環境構築手順
+
+1. nodeをグローバルインストール
+2. npmをグローバルインストール
+3. npm init
+4. 以下を--saveでインストール
+   webpack webpack-cli babel-core babel-loader babel-preset-env babel-preset-react css-loader sass-loader react react-dom
+5. .babelrcを作成し、以下の記述をする
+    {
+        "preset": [
+            "env" "react"
+        ]
+    }
+6. package.jsonのscriptsに以下の記述を追記
+    "build": "node ./node_modules/webpack/bin/webpack.js"
+7. npm run-script buildでビルド
