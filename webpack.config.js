@@ -1,139 +1,61 @@
+// webpack.config.js
 
-// Reactを変換するためのWebpackの設定ファイル
-const path = require('path')
-const webpack = require('webpack')
+// require
+const webpack = require("webpack");
+var path = require("path");
+
 // ユーザ定義変数
-const jsdir = path.join('src','js')
-const outputdir = 'dist'
-const targetjs = ['index','tasks']
-/*
-const ExtractTextPlugin = require('extract-text-webpack-plugin')
-// 変換対象から除外するモジュール
-const externalPlugins = new webpack.ExternalsPlugin(
-    'commonjs',
-    [
-        'app',
-        'auto-updater',
-        'browser-window',
-        'content-tracing',
-        'dialog',
-        'electron',
-        'global-shortcut',
-        'ipc',
-        'menu',
-        'menu-item',
-        'power-monitor',
-        'protocol',
-        'remote',
-        'web-frame',
-        'clipboad',
-        'crash-reporter',
-        'screen',
-        'shell',
-        'brace',
-        'zerorpc',
-    ]
-)
-*/
-let entryjs = {}
+const jsdir = path.join('src','js');
+const outputdir = 'dist';
+const targetjs = ['index','tasks'];
+
+//
+let entryjs = {};
 targetjs.forEach( function(name) {
-    entryjs[name] = path.join(__dirname, jsdir, name, name + '.js')
+    entryjs[name] = path.join(__dirname, jsdir, name, name + '.js');
 });
 
-module.exports =
-[
-    {
-        mode: 'development',
-        entry: entryjs,
-        output:
-        {
-            path: path.join(__dirname, outputdir),
-            filename: '[name].js',
-        },
-        /*
-        devtool: 'cheap-module-eval-source-map',
-        */
-        target: 'node',
-        module:
-        {
-            rules:
-            [
-                {
-                    test: /\.js$/,
-                    exclude: /(node_modules)/,
-                    use:
-                    {
-                        loader: 'babel-loader',
-                        options:
-                        {
-                            presets: [/*'es2015', */'react'],
-                        },
-                    },
-                },
-                {
-                    test: /\.css$/,
-                    exclude: /(node_modules)/,
-                    use:
-                    {
-                        loader: 'css-loader',
-                    },
-                },
-                /*
-                {
-                    test: /\.scss$/,
-                    use: ExtractTextPlugin.extract(
-                        {
-                            fallback: "style-loader",
-                            use:
-                            [
-                                'css-loader',
-                                'sass-loader',
-                            ]
-                        }
-                    )
-                },
-                */
-            ]
-        },
-        /*
-        plugins:
-        [
-            externalPlugins,
-            new ExtractTextPlugin("[name].css"),
-        ]
-        */
-    },
-/*
-    {
-        context: path.join(__dirname, 'src', 'sass'),
-        entry:
-        {
-            view: path.join(__dirname, 'src', 'sass', 'view.scss'),
-        },
-        output:
-        {
-            path: path.join(__dirname, 'out'),
-            filename: '[name].css',
-        },
-        module:
-        {
-            loaders:
-            [
-                {
-                    test: /\.css$/,
-                    loader: ExtractTextPlugin.extract("style-loader", "css-loader"),
-                },
-                {
-                    test: /\.scss$/,
-                    loader: ExtractTextPlugin.extract('style-loader', 'css-loader?-url&minimize&sourceMap!sass-loader')
-                },
-            ]
-        },
-        plugins:
-        [
-            new ExtractTextPlugin('[name].css')
-        ],
-        devtool: 'source-map',
-    }
-*/
-]
+const config = {
+  mode: 'development',
+  entry: entryjs,
+  output: {
+    path: path.resolve(__dirname, outputdir),
+    filename: '[name].js'
+  },
+  //target:'electron-renderer',　  // 追加 renderer用
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        exclude: path.resolve(__dirname, 'node_modules'),
+        loader: 'babel-loader',
+        query:{
+          presets: ['react'/*, 'es2015'*/],
+        }
+      },
+      {
+          test: /\.css$/,
+          exclude: path.resolve(__dirname, 'node_modules'),
+          use: {
+              loader: 'css-loader',
+          },
+      },
+    ]
+  },
+  /*
+  target: 'node',
+  node: {
+    __dirname: false,
+    __filename: false
+  },
+  externals: {
+    sqlite3: 'commonjs sqlite3',
+    'sqlite3-offline': 'commonjs sqlite3-offline',
+    path: 'commojs path'
+  },
+  */
+};
+
+
+module.exports = config;
+

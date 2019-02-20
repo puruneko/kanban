@@ -1,15 +1,16 @@
 {
   "name": "pages",
   "version": "1.0.0",
-  "description": "",
-  "main": "webpack.config.js",
+  "description": "kanban board",
+  "main": "./src/js/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "cp -r ./src/js/web_modules ./dist/. && cp -r ./src/css ./dist/. && node ./node_modules/webpack/bin/webpack.js --progress --colors --watch"
+    "build": "cp -r ./src/js/web_modules ./dist/. && cp -r ./src/css ./dist/. && node ./node_modules/webpack/bin/webpack.js --progress --colors --watch",
+    "electron": "./node_modules/.bin/electron ."
   },
-  "author": "",
+  "author": "puruneko",
   "license": "ISC",
-  "devDependencies": {
+  "dependencies": {
     "@material-ui/core": "^1.2.3",
     "@material-ui/icons": "^1.1.0",
     "babel-core": "^6.26.3",
@@ -17,10 +18,12 @@
     "babel-preset-env": "^1.7.0",
     "babel-preset-react": "^6.24.1",
     "css-loader": "^0.28.11",
+    "electron": "^4.0.5",
     "global": "^4.3.2",
     "hammer": "0.0.5",
     "jquery": "^3.3.1",
     "muuri": "^0.5.4",
+    "path": "^0.12.7",
     "prop-types": "^15.6.2",
     "react": "^16.4.1",
     "react-dom": "^16.4.1",

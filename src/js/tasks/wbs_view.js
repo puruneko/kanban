@@ -1,6 +1,4 @@
 import React from 'react'
-import ReactDOM from 'react-dom'
-import jQuery from 'jquery'
 //import {ContextMenu, MenuItem, ContextMenuTrigger} from 'react-contextmenu'
 import WBSAction from './WBS_action'
 import WBSStore from './WBS_store'
