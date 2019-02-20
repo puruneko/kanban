@@ -2,6 +2,7 @@ import React from 'react'
 //import {ContextMenu, MenuItem, ContextMenuTrigger} from 'react-contextmenu'
 import WBSAction from './WBS_action'
 import WBSStore from './WBS_store'
+import jstree from 'jstree'
 
 export default class WBS extends React.Component {
 

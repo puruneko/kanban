@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "cp -r ./src/js/web_modules ./dist/. && cp -r ./src/css ./dist/. && node ./node_modules/webpack/bin/webpack.js --progress --colors --watch",
-    "electron": "./node_modules/.bin/electron ."
+    "electron": "./node_modules/.bin/electron .",
+    "electron-packager": "./node_modules/.bin/electron-packager . pages --platform=win32 --arch=x64"
   },
   "author": "puruneko",
   "license": "ISC",
@@ -18,7 +19,6 @@
     "babel-preset-env": "^1.7.0",
     "babel-preset-react": "^6.24.1",
     "css-loader": "^0.28.11",
-    "electron": "^4.0.5",
     "global": "^4.3.2",
     "hammer": "0.0.5",
     "jquery": "^3.3.1",
@@ -32,5 +32,9 @@
     "typeface-roboto": "0.0.54",
     "webpack": "^4.12.0",
     "webpack-cli": "^3.0.8"
+  },
+  "devDependency" : {
+    "electron": "^4.0.5",
+    "electron-packager": "^13.1.0",
   }
 }

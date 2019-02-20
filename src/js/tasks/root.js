@@ -7,7 +7,7 @@ import WBS from './wbs_view'
 import Kanban from './kanban_view'
 import Footer from './footer'
 import Dispatcher from './dispatcher'
-import { Drawer } from '@material-ui/core';
+import { Drawer } from '@material-ui/core'
 
 export default class Root extends React.Component{
 

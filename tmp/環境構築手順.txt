@@ -15,3 +15,8 @@
 6. package.jsonのscriptsに以下の記述を追記
     "build": "node ./node_modules/webpack/bin/webpack.js"
 7. npm run-script buildでビルド
+
+# インストローラ作成
+https://tech.at-iroha.jp/?p=548
+https://spyweb.media/2017/10/16/mac-electron-build-windows-installer-and-auto-updater/
+
