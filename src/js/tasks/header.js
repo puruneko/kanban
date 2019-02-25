@@ -6,13 +6,27 @@ import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
 
 
 export default class Header extends React.Component {
 
     constructor(props) {
         super(props)
-        this.state = {'text':'HEADER!'}
+        this.state = {
+          'menu': null,
+          'text':'HEADER!'
+        }
+        this.onClick = this.handleClick.bind(this)
+        this.onClose = this.handleClose.bind(this)
+    }
+    handleClick(event) {
+        this.setState({menu:event.currentTarget})
+    }
+
+    handleClose() {
+        this.setState({menu:null})
     }
     render() {
         const header = {
@@ -36,9 +50,25 @@ export default class Header extends React.Component {
             <div style={header.style}>
                 <AppBar position="static">
                     <Toolbar>
-                        <IconButton style={iconButton.style} color={iconButton.color} aria-label="Menu">
-                            <MenuIcon />
-                        </IconButton>
+                        <div>
+                            <Button
+                              aria-owns={this.state.menu ? 'simple-menu' : undefined}
+                              aria-haspopup="true"
+                              onClick={this.onClick}
+                            >
+                                <MenuIcon />
+                            </Button>
+                            <Menu
+                              id="simple-menu"
+                              anchorEl={this.state.menu}
+                              open={Boolean(this.state.menu)}
+                              onClose={this.onClose}
+                            >
+                              <MenuItem onClick={this.onClose}>Profile</MenuItem>
+                              <MenuItem onClick={this.onClose}>My account</MenuItem>
+                              <MenuItem onClick={this.onClose}>Logout</MenuItem>
+                            </Menu>
+                        </div>
                         <Typography variant="title" color="inherit" style={typography.style}>
                             {this.state.text}
                         </Typography>
