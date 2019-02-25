@@ -22,7 +22,7 @@ const config = {
     path: path.resolve(__dirname, outputdir),
     filename: '[name].js'
   },
-  //target:'electron-renderer',　  // 追加 renderer用
+  target:'electron-renderer',  // 追加 renderer用
   module: {
     rules: [
       {

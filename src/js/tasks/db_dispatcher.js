@@ -1,35 +1,20 @@
-//import Sqlite from 'sqlite3-offline'
+// https://github.com/SimulatedGREG/electron-vue/blob/99f044896bf3add09d072e9f278ef9d8380337f4/docs/ja/savingreading-local-files.md
 
+import Datastore from 'nedb'
 import path from 'path'
-const a = path.join(__dirname, 'aaaa')
-const sqlite3 = require('sqlite3').verbose()
- 
-export default function db_test() {
-  
-  var db = new sqlite3.Database('sample.sqlite')
+import { remote } from 'electron'
+import dbdata from './testDB.json'
 
-  var selectTest = ((condition) => {
-    return new Promise((resolve, reject) => {
-      db.serialize(() => {
-        db.all('select * from test where id > $id',
-          {$id: condition.id},
-          ((err, res) => {
-            if (err) return reject(err)
-            resolve(res)
-          })
-        )
-      })
-    })
+export default function(path) {
+  console.log(path)
+  var db = new Datastore()
+  db.insert(dbdata)
+  db.find({}, (error, docs) => {
+    console.log("---- db find ----")
+    if (error) console.log(error)
+    console.log(docs)
+    console.log("--------")
   })
-
-  var condition = {
-    id: '5'
-  }
-
-  selectTest(condition).then((res) => {
-    console.log('Success:', res)
-  }).catch((err) => {
-    console.log('Failure:', err)
-  })
-
+  return db
 }
+
