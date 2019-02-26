@@ -46,6 +46,10 @@ export default class Header extends React.Component {
                 'flex': 1,
             }
         }
+        const test = (evt) => {
+            var file = evt.target.files[0]
+            console.log(file.path)
+        }
         return (
             <div style={header.style}>
                 <AppBar position="static">
@@ -64,7 +68,8 @@ export default class Header extends React.Component {
                               open={Boolean(this.state.menu)}
                               onClose={this.onClose}
                             >
-                              <MenuItem onClick={this.onClose}>Profile</MenuItem>
+                              <input id="icon_button_file" name="icon_button_file" type="file" onChange={test} />
+                              <MenuItem htmlFor="icon_button_file">Profile</MenuItem>
                               <MenuItem onClick={this.onClose}>My account</MenuItem>
                               <MenuItem onClick={this.onClose}>Logout</MenuItem>
                             </Menu>
