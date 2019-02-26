@@ -28,17 +28,29 @@ const getUncPath = (_path) => {
 }
 
 export default function(dbpath) {
-  const msg = child_process.execSync('net use * ' + getUncPath(dbpath)).toString()
-  const letter = /([A-Z]):/.exec(msg)[0]
-  const newpath = path.join(letter, path.basename(dbpath))
-  const dbdata = JSON.parse(fs.readFileSync(newpath).toString())
-  // /yオプションで強制アンマウント
-  child_process.execSync('net use ' + letter +' /delete' + ' /y')
+  var dbdata_raw
+  try {
+    // アクセスしてみてダメだったらマウントしてみる
+    dbdata_raw = fs.readFileSync(dbpath).toString()
+  } catch (e1) {
+    try {
+      // windows only
+      const msg = child_process.execSync('net use * ' + getUncPath(dbpath)).toString()
+      const letter = /([A-Z]):/.exec(msg)[0]
+      const newpath = path.join(letter, path.basename(dbpath))
+      dbdata_raw = fs.readFileSync(newpath).toString()
+      // /yオプションで強制アンマウント
+      child_process.execSync('net use ' + letter +' /delete' + ' /y')
+    } catch (e2) {
+      console.log('can not open ' + dbpath, e1, e2)
+    }
+  }
+  const dbdata = JSON.parse(dbdata_raw)
 
   var db = new Datastore()
   db.insert(dbdata, (err,ins) => {
     if (err) {
-      console.log("insert error")
+      console.error("insert error")
     }
     else {
       console.log(ins)
