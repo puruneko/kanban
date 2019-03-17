@@ -6,9 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "js:clean": "rm -rf ./dist && mkdir dist",
-    "js:copy": "cp -r ./src/js/web_modules ./dist/. && cp -r ./src/css ./dist/.",
-    "js:dev": "npm run js:clean && npm run js:copy && node ./node_modules/webpack/bin/webpack.js --progress --colors --watch",
-    "js:build": "npm run js:clean && npm run js:copy && node ./node_modules/webpack/bin/webpack.js --progress --colors",
+    "js:dev": "npm run js:clean && node ./node_modules/webpack/bin/webpack.js --progress --colors --watch",
+    "js:build": "npm run js:clean && node ./node_modules/webpack/bin/webpack.js --progress --colors",
     "electron:clean": "rm -rf ./installer",
     "electron:dev": "./node_modules/.bin/electron .",
     "electron:pack": "./node_modules/.bin/electron-packager . pages --platform=win32 --arch=x64 --out=dist/",
@@ -39,7 +38,7 @@
     "typeface-roboto": "0.0.54",
     "webpack": "^4.12.0",
     "webpack-cli": "^3.0.8",
-    "windows-fs": "^1.2.0"
+    "windows-fs": "^1.2.0",
   },
   "devDependencies": {
     "electron": "^4.0.5"

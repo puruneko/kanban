@@ -31,13 +31,13 @@
   color: #fff;
   border-radius: 3px 3px 0 0;
 }
-/*
+
 @media (max-width: 600px) {
   .board-column-header {
     text-indent: -1000px;
   }
 }
-*/
+
 .board-column.todo .board-column-header {
   background: #4A9FF9;
 }
@@ -53,7 +53,7 @@
 .board-column-content-wrapper {
   position: relative;
   /*max-height: 100%;/*300px;*/
-  overflow-y: scroll;
+  /*overflow-y: scroll;*/
 }
 /* Never ever set "overflow: auto/scroll"
    to the muuri element, stuff will break */
@@ -66,12 +66,13 @@
   position: absolute;
   width: 100%;
   margin: 5px 0;
+  z-index: 10;
 }
 .board-item.muuri-item-releasing {
-  z-index: 4;/*9998;*/
+  z-index: 10;
 }
 .board-item.muuri-item-dragging {
-  z-index: 5;/*9999;*/
+  z-index: 11;
   cursor: move;
 }
 .board-item.muuri-item-hidden {
@@ -87,7 +88,7 @@
   -webkit-box-shadow: 0px 1px 3px 0 rgba(0,0,0,0.2);
   box-shadow: 0px 1px 3px 0 rgba(0,0,0,0.2);
 }
-/*
+
 @media (max-width: 600px) {
   .board-item-content {
     text-align: center;
@@ -96,4 +97,3 @@
     display: none;
   }
 }
-*/

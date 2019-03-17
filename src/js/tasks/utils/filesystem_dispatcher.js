@@ -1,6 +1,5 @@
 // https://github.com/SimulatedGREG/electron-vue/blob/99f044896bf3add09d072e9f278ef9d8380337f4/docs/ja/savingreading-local-files.md
 
-import Datastore from 'nedb'
 import path from 'path'
 import { remote } from 'electron'
 import child_process from "child_process"
@@ -27,35 +26,24 @@ const getUncPath = (_path) => {
   return toUncPath(unc_root, unc_path)
 }
 
-export default function(dbpath) {
-  var dbdata_raw
+export default function(target_path) {
+  var target_data = undefined
   try {
     // アクセスしてみてダメだったらマウントしてみる
-    dbdata_raw = fs.readFileSync(dbpath).toString()
+    target_data = fs.readFileSync(target_path).toString()
   } catch (e1) {
     try {
       // windows only
-      const msg = child_process.execSync('net use * ' + getUncPath(dbpath)).toString()
+      const msg = child_process.execSync('net use * ' + getUncPath(target_path)).toString()
       const letter = /([A-Z]):/.exec(msg)[0]
-      const newpath = path.join(letter, path.basename(dbpath))
-      dbdata_raw = fs.readFileSync(newpath).toString()
+      const newpath = path.join(letter, path.basename(target_path))
+      target_data = fs.readFileSync(newpath).toString()
       // /yオプションで強制アンマウント
-      child_process.execSync('net use ' + letter +' /delete' + ' /y')
+      child_process.execSync('net use ' + letter + ' /delete' + ' /y')
     } catch (e2) {
-      console.log('can not open ' + dbpath, e1, e2)
+      console.log('can not open ' + target_path, e1, e2)
     }
   }
-  const dbdata = JSON.parse(dbdata_raw)
-
-  var db = new Datastore()
-  db.insert(dbdata, (err,ins) => {
-    if (err) {
-      console.error("insert error")
-    }
-    else {
-      console.log(ins)
-    }
-  })
-  return db
+  return target_data
 }
 

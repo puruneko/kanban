@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<kanbanDB name="sampleData">
+  <userObject><!-- 編集するときにGUIのどこかで選択する -->
+    <user name="Aさん" id="1" />
+    <user name="Kさん" id="2" />
+    <user name="Nさん" id="3" />
+    <user name="Yさん" id="4" />
+  </userObject>
+  <treeObject>
+    <tree name="Project" id="1">
+      <tree name="Phase1" id="2">
+        <tree name="work_A" id="3"/>
+        <tree name="work_B" id="4" />
+      </tree>
+      <tree name="Phase2" id="5">
+        <tree name="work_C" id="6" />
+        <tree name="work_D" id="7" />
+      </tree>
+    </tree>
+  </treeObject>
+  <contentsObject>
+    <contents idFor="3">
+[
+  {"type":"lane","name":"ToDo","color":"#4A9FF9","order":"1"},
+  {"type":"lane","name":"Doing","color":"#f9944a","order":"2"},
+  {"type":"lane","name":"UnderReview","color":"#2ac06d","order":"3"},
+  {"type":"lane","name":"Done","color":"#000000","order":"4"},
+  {"type":"card","title":"task01","label":["ToDo","Test"],"auther":1,"when":"20190101 000000","description":"task01 description","tasks":{"Do X":true,"Do Y":false,"Do Z":false},"assignee":1,"deadLine":"20190101 000000","memo":[{"auther":1,"value":"comment1","when":"20190101 000000"},{"auther":2,"value":"comment2","when":"20190101 000000"}],"history":[]},
+  {"type":"card","title":"task02","label":["Doing","Test"],"auther":1,"when":"20190101 000000","description":"task01 description","tasks":{"Do X":true,"Do Y":false,"Do Z":false},"assignee":1,"deadLine":"20190101 000000","memo":[{"auther":1,"value":"comment1","when":"20190101 000000"},{"auther":2,"value":"comment2","when":"20190101 000000"}],"history":[]},
+  {"type":"card","title":"task03","label":["UnderReview","Test"],"auther":1,"when":"20190101 000000","description":"task01 description","tasks":{"Do X":true,"Do Y":false,"Do Z":false},"assignee":1,"deadLine":"20190101 000000","memo":[{"auther":1,"value":"comment1","when":"20190101 000000"},{"auther":2,"value":"comment2","when":"20190101 000000"}],"history":[]},
+  {"type":"card","title":"task04","label":["Done","Test"],"auther":1,"when":"20190101 000000","description":"task01 description","tasks":{"Do X":true,"Do Y":false,"Do Z":false},"assignee":1,"deadLine":"20190101 000000","memo":[{"auther":1,"value":"comment1","when":"20190101 000000"},{"auther":2,"value":"comment2","when":"20190101 000000"}],"history":[]}
+]
+    </contents>
+    <contents idFor="4">
+[
+  {"type":"lane","name":"ToDo"},
+  {"type":"lane","name":"Doing"},
+  {"type":"lane","name":"Done"}
+]
+    </contents>
+  </contentsObject>
+</kanbanDB>

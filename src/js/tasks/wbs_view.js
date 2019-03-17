@@ -7,14 +7,21 @@ export default class WBS extends React.Component {
 
     constructor(props) {
         super(props)
-        this.store = new WBSStore(props.WBS_dispatcher)
-        this.action = new WBSAction(props.WBS_dispatcher, props.Kanban_dispatcher)
+        this.toRoot = props.Root_dispatcher
+        this.toWBS = props.WBS_dispatcher
+        this.toKanban = props.Kanban_dispatcher
+        this.store = new WBSStore(this.toWBS)
+        this.action = new WBSAction(this.toRoot, this.toWBS, this.toKanban)
         this.state = {
-            wbs: this.action.getTree(),
-            contextMenu: this.action.getContextMenu()
+            tree: [],
+            contextMenu: this.toWBS.emit('getContextMenu')
         }
-        this.init_treejs()  
+
+        this.toWBS.on('update', this.update.bind(this))
+
+        this.init_treejs()
     }
+    // tree.jsの初期設定
     init_treejs() {
         const customMenuControll = (node) =>
         {
@@ -23,7 +30,7 @@ export default class WBS extends React.Component {
                 items[menu] = {
                     'label': menu,
                     'action': () => {
-                        this.action.rightClick({
+                        this.toWBS.emit('rightClick', {
                             'name': menu,
                             'node': node
                         })
@@ -62,17 +69,28 @@ export default class WBS extends React.Component {
                 console.log(selectedList)
             })
         })
-
+    }
+    // viewのアップデート
+    update() {
+        this.init_treejs()
+        console.log('WBS update')
+        this.setState(this.toWBS.emit('getStore'))
     }
     render() {
-        // jstree-default-responsive
-        return (
-            <div className="wbs_tree">
-                <div id="jstree">
-                    <NodeTree node={this.state.wbs}/>
+        if (this.state.tree.length != 0) {
+            return (
+                <div className="wbs_tree">
+                    <div id="jstree">
+                        <NodeTree key={this.state.tree.toString()} node={this.state.tree} />
+                    </div>
                 </div>
-            </div>
-        )
+            )
+        }
+        else {
+            return (
+                <div key={this.state.tree.toString()}></div>
+            )
+        }
     }
 }
 
@@ -85,10 +103,12 @@ class NodeTree extends React.Component {
         }
     }
     render() {
+        console.log('NodeTree', this.state.node)
         return (
             <ul key={this.state.abspath + '/ul'}>
                 {
                     this.state.node.map( node => {
+                        console.log('NodeTree', node)
                         const abspath = this.state.abspath + '/' + node.name
                         return (
                             <Node key={abspath + '/node'} node={node} abspath={abspath}/>
@@ -108,16 +128,15 @@ class Node extends React.Component {
             node: props.node,
         }
         this.onClick = this.onClickHandler.bind(this)
-        console.log(this.state)
-        console.log(this.state.node)
+        console.log('Node', this.state)
     }
     onClickHandler(e, data) {
-        this.action.leftClick(data)
+        this.toWBS.emit('leftClick', data)
     }
     render() {
         if (this.state.node.children && this.state.node.children.length != 0) {
             return (
-                <li key={this.state.abspath + '/li'} id={this.state.abspath}>
+                <li key={this.state.abspath + '/li'} path={this.state.abspath} id={this.state.node.id}>
                     {this.state.node.name}
                     <ul key={this.state.abspath + '/ul'}>
                         {
@@ -134,7 +153,7 @@ class Node extends React.Component {
         }
         else {
             return (
-                <li key={this.state.abspath + '/li'} id={this.state.abspath}>
+                <li key={this.state.abspath + '/li'} path={this.state.abspath} id={this.state.node.id}>
                     {this.state.node.name}
                 </li>
             )

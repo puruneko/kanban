@@ -14,19 +14,29 @@ export default class Header extends React.Component {
 
     constructor(props) {
         super(props)
+        this.toRoot = props.Root_dispatcher
+        this.toWBS = props.WBS_dispatcher
         this.state = {
           'menu': null,
           'text':'HEADER!'
         }
         this.onClick = this.handleClick.bind(this)
         this.onClose = this.handleClose.bind(this)
+        this.dbLoader = this.handleDbLoader.bind(this)
     }
     handleClick(event) {
         this.setState({menu:event.currentTarget})
     }
-
     handleClose() {
         this.setState({menu:null})
+    }
+    handleDbLoader(evt) {
+        var file = evt.target.files[0]
+        console.log(file.path)
+        this.toRoot.emit('loadSettings', file.path)
+        console.log(this.toWBS.listup())
+        this.toWBS.emit('redraw')
+        this.onClose()
     }
     render() {
         const header = {
@@ -46,10 +56,6 @@ export default class Header extends React.Component {
                 'flex': 1,
             }
         }
-        const test = (evt) => {
-            var file = evt.target.files[0]
-            console.log(file.path)
-        }
         return (
             <div style={header.style}>
                 <AppBar position="static">
@@ -68,10 +74,14 @@ export default class Header extends React.Component {
                               open={Boolean(this.state.menu)}
                               onClose={this.onClose}
                             >
-                              <input id="icon_button_file" name="icon_button_file" type="file" onChange={test} />
-                              <MenuItem htmlFor="icon_button_file">Profile</MenuItem>
-                              <MenuItem onClick={this.onClose}>My account</MenuItem>
-                              <MenuItem onClick={this.onClose}>Logout</MenuItem>
+                              <MenuItem>
+                                <input id="icon_button_file" type="file" onChange={this.dbLoader} style={{display: "none"}}/>
+                                <label htmlFor="icon_button_file">
+                                    Import Data
+                                </label>
+                              </MenuItem>
+                              <MenuItem onClick={this.onClose}>Test Menu1</MenuItem>
+                              <MenuItem onClick={this.onClose}>Test Menu2</MenuItem>
                             </Menu>
                         </div>
                         <Typography variant="title" color="inherit" style={typography.style}>

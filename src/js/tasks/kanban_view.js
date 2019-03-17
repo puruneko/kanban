@@ -1,3 +1,7 @@
+// カンバンの状態はstateで一時管理
+// 状態が変化したら即DBに反映してリロード -> stateとDBを同期
+// storeはDBのみ保持
+
 import React from 'react'
 import Muuri from 'muuri'
 import KanbanStore from './kanban_store'
@@ -18,42 +22,72 @@ export default class Kanban extends React.Component {
 
     constructor(props) {
         super(props)
+        this.kanbanName = ''
         this.theme = props.theme
-        this.dispatcher = props.Kanban_dispatcher
-        this.store = new KanbanStore(this.dispatcher)
-        this.action = new KanbanAction(this.dispatcher)
-        this.dispatcher.on('update', this.update.bind(this))
+        this.toRoot = props.Root_dispatcher
+        this.toKanban = props.Kanban_dispatcher
+        this.store = new KanbanStore(this.toKanban)
+        this.action = new KanbanAction(this.toKanban)
+
         this.boardGrid = null
         this.columnGrids = []
-        this.state ={
-            board: this.action.getBoard()
+        this.state = {
+            id: 0,
+            kanban: []
         }
+        
+        this.toKanban.on('redraw', this.redraw.bind(this))
     }
-    update() {
-        console.log('---- updateします ----')
-        console.log(this.action.getStore())
-        this.setState(this.action.getStore())
-        //this.render()
+    redraw() {
+        const kanbanPromise = this.toKanban.emit('getCardsQuery')
+        kanbanPromise.then((kanban) => {
+            const state = {
+                id: this.toKanban.emit('getId'),
+                kanban: kanban
+            }
+            console.log('kanban redraw' ,state)
+            this.setState(state)
+        })
     }
     render() {
-        const headerHeight = 30
-        const footerHeight = 30
+        this.kanbanName = `kanban${this.state.id}`
+        const headerHeight = 64
+        const footerHeight = 64
         const paddingHeight = 5
         const windowHeight = window.innerHeight
-        const maxHeight = windowHeight - headerHeight - footerHeight - headerHeight - paddingHeight * 2
-        const maxWidth = parseInt(80/this.state.board.length)
+        const maxLaneHeight = windowHeight - headerHeight - footerHeight - headerHeight - paddingHeight * 2
+        const maxLaneWidth = parseInt(80/this.state.kanban.length)
+        const params = {
+            board: {
+                key: `kanban/${this.state.id}/${Date.now().toString()}`,
+                class: 'board',
+                id: this.kanbanName, // essential
+                style: {
+                    position: 'relative',
+                    'margin-left': '1%'
+                }
+            }
+        }
         return (
-            <div key="board" className="board" id="board">
+            <div key={params.board.key} className={params.board.class} id={params.board.id}>
                 {
-                    this.state.board.map((lane) => {
-                        const abspath = 'kanban/' + lane.name
-                        const style = {
+                    this.state.kanban.map((lane) => {
+                        console.log('kanban render', lane)
+                        const abspath = `${params.board.key}/${lane.name}`
+                        const laneStyle = {
                             color: lane.color,
-                            maxWidth: maxWidth + '%',
-                            maxHeight: maxHeight + 'px',
+                            maxWidth: `${maxLaneWidth}%`,
+                            maxHeight: `${maxLaneHeight}px`,
                         }
                         return (
-                            <KanbanLane key={abspath} abspath={abspath} theme={this.theme} name={lane.name} items={lane.items} style={style}/>
+                            <KanbanLane
+                                key={abspath}
+                                abspath={abspath}
+                                theme={this.theme}
+                                name={lane.name}
+                                items={lane.items}
+                                laneStyle={laneStyle}
+                            />
                         )
                     })
                 }
@@ -64,6 +98,7 @@ export default class Kanban extends React.Component {
         this.boardGrid = undefined
         this.columnGrids = []
         const itemContainers = [].slice.call(document.querySelectorAll('.board-column-content'))
+        console.log('itemContainers', itemContainers)
         // Define the column grids so we can drag those
         // items around.
         itemContainers.forEach((container) => {
@@ -77,7 +112,7 @@ export default class Kanban extends React.Component {
                     return this.columnGrids
                 },
                 dragSortInterval: 0,
-                dragContainer: document.getElementById('board'),
+                dragContainer: document.getElementById(this.kanbanName),
                 dragReleaseDuration: 400,
                 dragReleaseEasing: 'ease'
             }).on('dragStart', (item) => {
@@ -85,8 +120,8 @@ export default class Kanban extends React.Component {
                 // so that it does not stretch unwillingly when
                 // it's appended to the document body for the
                 // duration of the drag.
-                item.getElement().style.width = item.getWidth() + 'px'
-                item.getElement().style.height = item.getHeight() + 'px'
+                item.getElement().style.width = `${item.getWidth()}px`
+                item.getElement().style.height = `${item.getHeight()}px`
             }).on('dragReleaseEnd', (item) => {
                 // Let's remove the fixed width/height from the
                 // dragged item now that it is back in a grid
@@ -126,12 +161,14 @@ export default class Kanban extends React.Component {
         //this.boardGrid.layout()
     }
     componentDidUpdate() {
-        console.log('----- synchronize -----')
-        console.log(this.state.board)
+        console.log('---> synchronize')
+        console.log('componentDidUpdate', this.state.kanban)
         if (document.getElementsByClassName('.board-column-header')) {
-            console.log('----- Muuri update -----')
+            console.log('----> Muuri update')
             this.muuriUpdate()
+            console.log('<---- Muuri update')
         }
+        console.log('<--- synchronize')
     }
 }
 
@@ -142,42 +179,38 @@ class KanbanLane extends React.Component {
         this.state = {
             abspath: props.abspath,
             name: props.name,
-            color: props.style.color,
             items: props.items,
-            maxHeight: props.style.maxHeight,
-            maxWidth: props.style.maxWidth,
+            laneStyle: props.laneStyle
         }
-        console.log(this.state)
+        console.log('kanban lane', this.state)
     }
     render() {
-        const args = {
+        const params = {
             board: {
-                key: this.state.abspath + "/" + "board-column",
-                class: "board-column " + this.state.name,
+                key: `${this.state.abspath}/board-column`,
+                class: `board-column ${this.state.name}`,
                 style: {
-                    "width": this.state.maxWidth,
-                    "maxWidth": this.state.maxWidth,
+                    'width': this.state.laneStyle.maxWidth,
+                    'maxWidth': this.state.laneStyle.maxWidth,
                 },
             },
             header: {
-                key: this.state.abspath + "/" + "header",
+                key: `${this.state.abspath}/header`,
                 class: "board-column-header",
                 style: {
-                    "backgroundColor":this.state.color,
+                    "backgroundColor": this.state.laneStyle.color,
                 },
             },
-            wrapper: {
-                key: this.state.abspath + "/" + "wrapper",
-                class: "board-column-content-wrapper",
-                style: {
-                    "maxHeight":this.state.maxHeight,
-                    "height":this.state.maxHeight,
-                },
-            },
+            item: {
+                key: `${this.state.abspath}/KanbanItems`,
+                theme: this.theme,
+                items: this.state.items,
+                laneStyle: this.state.laneStyle
+            }
         }
         return (
-            <div key={args.board.key} className={args.board.class} style={args.board.style}>
-                <div key={args.header.key} className={args.header.class} style={args.header.style}>
+            <div key={params.board.key} className={params.board.class} style={params.board.style}>
+                <div key={params.header.key} className={params.header.class} style={params.header.style}>
                     <Grid container justify="space-between">
                         <Grid item>
                             {this.state.name}
@@ -189,9 +222,7 @@ class KanbanLane extends React.Component {
                         </Grid>
                     </Grid>
                 </div>
-                <div key={args.wrapper.key} className={args.wrapper.class} style={args.wrapper.style}>
-                    <KanbanItems key={this.state.abspath + "/KanbanItems"} theme={this.theme} items={this.state.items} abspath={this.state.abspath}/>
-                </div>
+                <KanbanItems key={params.item.key} abspath={params.item.key} theme={params.item.theme} items={params.item.items} laneStyle={params.item.laneStyle} />
             </div>
         )
     }
@@ -203,16 +234,27 @@ class KanbanItems extends React.Component {
         this.theme = props.theme
         this.state = {
             abspath: props.abspath,
+            laneStyle: props.laneStyle,
             items: props.items,
         }
     }
-    render(){
+    render() {
+        const params = {
+            content: {
+                key: `${this.state.abspath}/contents`,
+                class: 'board-column-content',
+                style: {
+                    "maxHeight": this.state.laneStyle.maxHeight,
+                    "minHeight": this.state.laneStyle.maxHeight,
+                }
+            }
+        }
         return (
-            <div key={this.state.abspath + '/contents'} className="board-column-content">
+            <div key={params.content.key} className={params.content.class} style={params.content.style} >
                 {
                     this.state.items.map((item) => {
-                        const abspath =  this.state.abspath + item.title
-                        return <KanbanItem key={abspath} theme={this.theme} item={item} abspath={abspath}/>
+                        const key = `${params.content.key}/${item.title}`
+                        return <KanbanItem key={key} abspath={key} theme={this.theme} item={item}/>
                     })
                 }
             </div>
@@ -237,15 +279,32 @@ class KanbanItem extends React.Component {
     }
     render() {
         //const KanbanItemResponsible = withStyles(this.kanbanItemStyles)(KanbanItemController)
+        const params = {
+            boardItem: {
+                key: `${this.state.abspath}/wrapper`,
+                class: 'board-item',
+                style: {}
+            },
+            content: {
+                key: `${this.state.abspath}/content`,
+                class: 'board-item-content',
+                style: {}
+            },
+            controller: {
+                key: `${this.state.abspath}/controller`,
+                theme: this.theme,
+                item: this.state.item
+            }
+        }
         return (
-            <div key={this.state.abspath + '/wrapper'} className="board-item">
-                <div key={this.state.abspath + '/content'} className="board-item-content">
+            <div key={params.boardItem.key} className={params.boardItem.class} style={params.boardItem.style}>
+                <div key={params.content.key} className={params.content.class} style={params.content.style}>
                     {/*
                         <span key={this.state.abspath + '/msg'} onClick={this.onClick}>
                             {this.state.item.name}
                         </span>
                     */}
-                    <KanbanItemController abspath={this.state.abspath} theme={this.theme} item={this.state.item}/>
+                    <KanbanItemController key={params.controller.key} abspath={params.controller.key} theme={params.controller.theme} item={params.controller.item} />
                 </div>
             </div>
         )
@@ -301,7 +360,7 @@ class KanbanItemController extends React.Component {
     }
     render() {
         return (
-            <div>
+            <div key={`${this.state.abspath}/div`}>
                 <Typography gutterBottom onClick={this.handleOpenner}>
                     {this.state.item.title}
                 </Typography>
@@ -309,7 +368,7 @@ class KanbanItemController extends React.Component {
                     open={this.state.showDetail}
                     onClose={this.handleCloser}
                     aria-labelledby="alert-dialog-title"
-                    aria-describedby="alert^-dialog.description"
+                    aria-describedby="alert-dialog.description"
                 >
                     <DialogTitle>
                         {this.state.item.title}

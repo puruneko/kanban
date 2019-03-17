@@ -2,6 +2,8 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import { createMuiTheme } from '@material-ui/core/styles'
 import {indigo, pink, red} from '@material-ui/core/colors/blue'
+import RootAction from './root_action'
+import RootStore from './root_store'
 import Header from './header'
 import WBS from './wbs_view'
 import Kanban from './kanban_view'
@@ -13,8 +15,12 @@ export default class Root extends React.Component{
 
     constructor(props){
         super(props)
+        this.toRoot = new Dispatcher()
         this.toWBS = new Dispatcher()
         this.toKanban = new Dispatcher()
+        this.Action = new RootAction(this.toRoot,this.toWBS,this.toKanban)
+        this.Store = new RootStore(this.toRoot)
+
         this.naviWidth = '25vw'
         this.state = {
             showWBS: true,
@@ -149,14 +155,14 @@ export default class Root extends React.Component{
         return (
             <div className="root">
                 <header>
-                    <Header />
+                    <Header Root_dispatcher={this.toRoot} WBS_dispatcher={this.toWBS} />
                 </header>
                 <div className="main">
                     <div className="wbs_container">
-                                <WBS style={{'position':'absolute', 'top':'0px'}} theme={this.theme} WBS_dispatcher={this.toWBS} Kanban_dispatcher={this.toKanban}/>
+                        <WBS style={{'position':'absolute', 'top':'0px'}} theme={this.theme} Root_dispatcher={this.toRoot} WBS_dispatcher={this.toWBS} Kanban_dispatcher={this.toKanban}/>
                     </div>
                     <div className="kanban_container">
-                        <Kanban theme={this.theme} Kanban_dispatcher={this.toKanban}/>
+                        <Kanban theme={this.theme} Root_dispatcher={this.toRoot} Kanban_dispatcher={this.toKanban}/>
                     </div>
                 </div>
                 <footer className="footer">

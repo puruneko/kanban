@@ -1,13 +1,25 @@
 
+// 呼び出し方
+// dispatcher.emit(id, arg)
+// dispatcher.chain.id(arg)
+
 export default class Dispatcher {
     constructor() {
-        this.handlers = {}
+        this.chain = {}
     }
     on(id, _handler){
-        this.handlers[id] = _handler
-        console.log(this.handlers)
+        this.chain[id] = _handler
+        console.log('register handler --->', id)
     }
     emit(id, entity){
-        return this.handlers[id](entity)
+        if (id in this.chain) {
+            return this.chain[id](entity)
+        }
+        else {
+            throw new Error(`${id} is not found in dispatcher.(entity: ${entity})`)
+        }
+    }
+    listup(){
+        return this.chain
     }
 }
