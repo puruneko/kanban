@@ -4,12 +4,13 @@
 // dispatcher.chain.id(arg)
 
 export default class Dispatcher {
-    constructor() {
+    constructor(whoami) {
+        this.whoami = whoami
         this.chain = {}
     }
     on(id, _handler){
         this.chain[id] = _handler
-        console.log('register handler --->', id)
+        console.log('register handler --->', this.whoami, id)
     }
     emit(id, entity){
         if (id in this.chain) {

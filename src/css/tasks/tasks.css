@@ -44,7 +44,7 @@ body{
 	right: 0px;
 	height: 30px;
 	width: 100%;
-	background-color: #f0fcff;
+	background-color: #474488;
 	border-top: 1px solid #dcdcdc;
 }
 
@@ -55,7 +55,7 @@ body{
 }
 
 .wbs_container{
-    flex: 0 0 350px;
+  flex: 0 0 350px;
 	max-width: 30vw;
 	background-color: #f0fcff;
 	padding: 5px 0;

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<kanbanDB name="sampleData">
+  <userObject><!-- 編集するときにGUIのどこかで選択する -->
+[
+  {"Id":1, "name":"Aさん"},
+  {"Id":2, "name":"Kさん"},
+  {"Id":3, "name":"Nさん"},
+  {"Id":4, "name":"Yさん"},
+  {"Id":5, "name":"Zさん"}
+]
+  </userObject>
+  <treeObject>
+    <tree name="Project" id="1">
+      <tree name="Phase1" id="2">
+        <tree name="work_A" id="3"/>
+        <tree name="work_B" id="4" />
+      </tree>
+      <tree name="Phase2" id="5">
+        <tree name="work_C" id="6" />
+        <tree name="work_D" id="7" />
+      </tree>
+    </tree>
+  </treeObject>
+  <contentsObject>
+    <contents idFor="1">
+[
+  {"type":"meta","kind":"maxCardCount","value":10},
+  {"type":"meta","kind":"maxTagCount","value":3},
+  {"Id":1,"type":"tag","kind":"lane","name":"ToDo","color":"#4A9FF9","order":1},
+  {"Id":2,"type":"tag","kind":"lane","name":"Doing","color":"#f9944a","order":2},
+  {"Id":3,"type":"tag","kind":"lane","name":"UnderReview","color":"#2ac06d","order":3},
+  {"Id":4,"type":"tag","kind":"lane","name":"Done","color":"#000000","order":4},
+  {"Id":5,"type":"tag","kind":"tag","name":"Test","color":"#000000","order":4},
+  {"Id":6,"type":"tag","kind":"tag","name":"Tester","color":"#000000","order":4},
+  {"Id":7,"type":"tag","kind":"tag","name":"superLongNameTag","color":"#000000","order":4},
+  {"Id":1,"type":"card","title":"task01","label":[1,5,6,7],"auther":1,"createAt":"20190101 000000","description":"task01 description","tasks":{"Do X":true,"Do Y":false,"Do Z":false},"assignee":1,"deadline":"20190101 000000","memo":[{"id":0,"auther":1,"content":"comment1","createAt":"20190101 000000","isAssignee":true},{"id":1,"auther":2,"content":"comment2","createAt":"20190101 000000","isAssignee":false}],"history":[]},
+  {"Id":2,"type":"card","title":"superLongNameTaskCard","label":[2,5,6,7],"auther":1,"createAt":"20190101 000000","description":"task01 description","tasks":{"Do X":true,"Do Y":false,"Do Z":false},"assignee":1,"deadline":"20190101 000000","memo":[{"id":0,"auther":1,"content":"comment1","createAt":"20190101 000000","isAssignee":true},{"id":1,"auther":2,"content":"comment2","createAt":"20190101 000000","isAssignee":false}],"history":[]}
+]
+    </contents>
+    <contents idFor="4">
+[
+  {"type":"lane","name":"ToDo"},
+  {"type":"lane","name":"Doing"},
+  {"type":"lane","name":"Done"}
+]
+    </contents>
+  </contentsObject>
+</kanbanDB>

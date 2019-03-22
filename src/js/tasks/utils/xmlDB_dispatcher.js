@@ -1,6 +1,5 @@
 // https://github.com/SimulatedGREG/electron-vue/blob/99f044896bf3add09d072e9f278ef9d8380337f4/docs/ja/savingreading-local-files.md
 
-import xml_js from 'xml-js'
 import filesystem from './filesystem_dispatcher'
 import db_dispatcher from './db_dispatcher'
 

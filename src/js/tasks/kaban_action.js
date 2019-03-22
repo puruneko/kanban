@@ -7,7 +7,14 @@ export default class KanbanAction {
 
     constructor(Kanban_dispatcher) {
         this.toKanban = Kanban_dispatcher
+        this.toKanban.on('getMetaQuery', this.getMetaQuery.bind(this))
+        this.toKanban.on('getLaneTagQuery', this.getLaneTagQuery.bind(this))
+        this.toKanban.on('getNormalTagQuery', this.getNormalTagQuery.bind(this))
         this.toKanban.on('getCardsQuery', this.getCardsQuery.bind(this))
+        this.toKanban.on('findTagQuery', this.findTagQuery.bind(this))
+    }
+    getKanbanDb() {
+        return this.toKanban.emit('getKanbanDb')
     }
     findPromise(db, condition) {
         const promise = new Promise((resolve, reject) => {
@@ -17,8 +24,38 @@ export default class KanbanAction {
         })
         return promise
     }
-    getCardsQuery() {
-        const kanbanDb = this.toKanban.emit('getKanbanDb')
+    getMetaQuery() {
+        const kanbanDb = this.getKanbanDb()
+        if (kanbanDb === undefined) {
+            console.log('getMetaQuery', 'DB is undefined!')
+            return undefined
+        }
+        const metaPromise = () => {
+            return new Promise((resolve, reject) => {
+                const p = this.findPromise(kanbanDb, {'type':'meta'})
+                p.then((res) => {
+                    if (!res.err) {
+                        resolve(res.docs)
+                    }
+                    else {
+                        resolve([])
+                    }
+                })
+            })
+        }        
+        const promise = new Promise((resolve, reject) => {
+            metaPromise().then((meta) => {
+                var metaList = {}
+                meta.forEach((m) => {
+                    metaList[m.kind] = m.value
+                })
+                resolve(metaList)
+            })
+        })
+        return promise
+    }
+    getLaneTagQuery() {
+        const kanbanDb = this.getKanbanDb()
         if (kanbanDb === undefined) {
             console.log('getCardsQuery', 'DB is undefined!')
             return undefined
@@ -26,7 +63,7 @@ export default class KanbanAction {
         // cardをゲット
         const lanePromise = () => {
             return new Promise((resolve, reject) => {
-                const p = this.findPromise(kanbanDb, {'type': 'lane'})
+                const p = this.findPromise(kanbanDb, {'type': 'tag', 'kind': 'lane'})
                 p.then((res) => {
                     if (!res.err) {
                         resolve(res.docs)
@@ -37,9 +74,50 @@ export default class KanbanAction {
                 })
             })
         }
+        const promise = new Promise((resolve, reject) => {
+            lanePromise().then((lanes) => resolve(lanes))
+        })
+        return promise
+    }
+    getNormalTagQuery() {
+        const kanbanDb = this.getKanbanDb()
+        if (kanbanDb === undefined) {
+            console.error('getCardsQuery', 'DB is undefined!')
+            return undefined
+        }
+        // cardをゲット
+        const lanePromise = () => {
+            return new Promise((resolve, reject) => {
+                const p = this.findPromise(kanbanDb, {'type': 'tag', 'kind': 'tag'})
+                p.then((res) => {
+                    if (!res.err) {
+                        resolve(res.docs)
+                    }
+                    else {
+                        reject(res.err)
+                    }
+                })
+            })
+        }
+        const promise = new Promise((resolve, reject) => {
+            lanePromise()
+                .then((lanes) => resolve(lanes))
+                .catch((e) => {
+                    reject(e)
+                })
+        })
+        return promise
+    }
+    getCardsQuery() {
+        const kanbanDb = this.getKanbanDb()
+        if (kanbanDb === undefined) {
+            console.log('getCardsQuery', 'DB is undefined!')
+            return undefined
+        }
+        // cardをゲット
         const cardPromise = (lane) => {
             return new Promise((resolve, reject) => {
-                    const p = this.findPromise(kanbanDb, {'type':'card', 'label': {$elemMatch: lane.name}})
+                    const p = this.findPromise(kanbanDb, {'type':'card', 'label': {$elemMatch: lane.Id}})
                     p.then((res) => {
                         if (!res.err) {
                             resolve({
@@ -79,36 +157,35 @@ export default class KanbanAction {
             })
         }
         const promise = new Promise((resolve, reject) => {
-            lanePromise()
+            this.getLaneTagQuery()
                 .then((lanes) => cardsPromise(lanes))
                 .then((kanban) => resolve(kanban))
         })
         return promise
-        /*
-        const boardColor = {'ToDo':'#4A9FF9','Doing':'#f9944a','underReview':'#2ac06d','Done':'#000000'}
-        const board = []
-        Object.keys(boardColor).forEach( (key) => {
-            board.push({
-                'name': key,
-                'color': boardColor[key],
-                'items': []
-            })
-        })
-        target.tasks.forEach( task => {
-            board.some( b => {
-                if (b.name === task.stage) {
-                    b.items.push(task)
-                    return true
-                }
-            })
-        })
-        const entity = {
-            'board': board
+    }
+    findTagQuery(tagId) {
+        const kanbanDb = this.getKanbanDb()
+        if (kanbanDb === undefined) {
+            console.log('getMetaQuery', 'DB is undefined!')
+            return undefined
         }
-        console.log('----- Boardをセットします -----')
-        console.log(entity)
-        this.toKanban.emit('setBoardFromWBS', entity)
-        */
+        const tagPromise = () => {
+            return new Promise((resolve, reject) => {
+                const p = this.findPromise(kanbanDb, {'type':'tag', 'Id':tagId})
+                p.then((res) => {
+                    if (!res.err) {
+                        resolve(res.docs)
+                    }
+                    else {
+                        resolve([])
+                    }
+                })
+            })
+        }        
+        const promise = new Promise((resolve, reject) => {
+            tagPromise().then((tag) => resolve(tag))
+        })
+        return promise
     }
     setCardQuery(newStateCard) {
         // TODO:書く

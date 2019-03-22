@@ -16,14 +16,18 @@ import FormHelperText from '@material-ui/core/FormHelperText';
 import FormControl from '@material-ui/core/FormControl';
 import Button from '@material-ui/core/Button';
 import AddBox from '@material-ui/icons/addBox';
-import { Dialog, DialogTitle, DialogContent, DialogContentText } from '@material-ui/core';
+import MenuIcon from '@material-ui/icons/Menu';
+import Card from '@material-ui/core/Card';
+import Chip from '@material-ui/core/Chip'
+import { Dialog, DialogTitle, DialogContent, DialogContentText, TextField, Divider } from '@material-ui/core';
+
+import Balloon from './utils/balloon'
 
 export default class Kanban extends React.Component {
 
     constructor(props) {
         super(props)
         this.kanbanName = ''
-        this.theme = props.theme
         this.toRoot = props.Root_dispatcher
         this.toKanban = props.Kanban_dispatcher
         this.store = new KanbanStore(this.toKanban)
@@ -32,6 +36,7 @@ export default class Kanban extends React.Component {
         this.boardGrid = null
         this.columnGrids = []
         this.state = {
+            meta: {},
             id: 0,
             kanban: []
         }
@@ -39,14 +44,18 @@ export default class Kanban extends React.Component {
         this.toKanban.on('redraw', this.redraw.bind(this))
     }
     redraw() {
-        const kanbanPromise = this.toKanban.emit('getCardsQuery')
-        kanbanPromise.then((kanban) => {
-            const state = {
-                id: this.toKanban.emit('getId'),
-                kanban: kanban
-            }
-            console.log('kanban redraw' ,state)
-            this.setState(state)
+        const metaPromise = this.toKanban.emit('getMetaQuery')
+        metaPromise.then((meta) => {
+            const kanbanPromise = this.toKanban.emit('getCardsQuery')
+            kanbanPromise.then((kanban) => {
+                const state = {
+                    meta: meta,
+                    id: this.toKanban.emit('getId'),
+                    kanban: kanban
+                }
+                console.log('kanban redraw' ,state)
+                this.setState(state)
+            })
         })
     }
     render() {
@@ -77,16 +86,18 @@ export default class Kanban extends React.Component {
                         const laneStyle = {
                             color: lane.color,
                             maxWidth: `${maxLaneWidth}%`,
-                            maxHeight: `${maxLaneHeight}px`,
+                            maxHeight: maxLaneHeight,
                         }
                         return (
                             <KanbanLane
                                 key={abspath}
+                                toKanban={this.toKanban}
                                 abspath={abspath}
                                 theme={this.theme}
                                 name={lane.name}
                                 items={lane.items}
                                 laneStyle={laneStyle}
+                                meta={this.state.meta}
                             />
                         )
                     })
@@ -161,26 +172,30 @@ export default class Kanban extends React.Component {
         //this.boardGrid.layout()
     }
     componentDidUpdate() {
-        console.log('---> synchronize')
         console.log('componentDidUpdate', this.state.kanban)
-        if (document.getElementsByClassName('.board-column-header')) {
-            console.log('----> Muuri update')
-            this.muuriUpdate()
-            console.log('<---- Muuri update')
+        if (this.state.kanban.length != 0) {
+            console.log('---> synchronize')
+            if (document.getElementsByClassName('.board-column-header')) {
+                console.log('----> Muuri update')
+                this.muuriUpdate()
+                console.log('<---- Muuri update')
+            }
+            console.log('<--- synchronize')
         }
-        console.log('<--- synchronize')
     }
 }
 
 class KanbanLane extends React.Component {
     constructor(props) {
         super(props)
+        this.toKanban = props.toKanban
         this.theme = props.theme
         this.state = {
             abspath: props.abspath,
             name: props.name,
             items: props.items,
-            laneStyle: props.laneStyle
+            laneStyle: props.laneStyle,
+            meta: props.meta,
         }
         console.log('kanban lane', this.state)
     }
@@ -222,7 +237,15 @@ class KanbanLane extends React.Component {
                         </Grid>
                     </Grid>
                 </div>
-                <KanbanItems key={params.item.key} abspath={params.item.key} theme={params.item.theme} items={params.item.items} laneStyle={params.item.laneStyle} />
+                <KanbanItems
+                    key={params.item.key}
+                    toKanban={this.toKanban}
+                    abspath={params.item.key}
+                    theme={params.item.theme}
+                    items={params.item.items}
+                    laneStyle={params.item.laneStyle}
+                    meta={this.state.meta}
+                />
             </div>
         )
     }
@@ -231,11 +254,13 @@ class KanbanLane extends React.Component {
 class KanbanItems extends React.Component {
     constructor(props) {
         super(props)
+        this.toKanban = props.toKanban
         this.theme = props.theme
         this.state = {
             abspath: props.abspath,
             laneStyle: props.laneStyle,
             items: props.items,
+            meta: props.meta,
         }
     }
     render() {
@@ -244,17 +269,33 @@ class KanbanItems extends React.Component {
                 key: `${this.state.abspath}/contents`,
                 class: 'board-column-content',
                 style: {
-                    "maxHeight": this.state.laneStyle.maxHeight,
-                    "minHeight": this.state.laneStyle.maxHeight,
+                    maxHeight: this.state.laneStyle.maxHeight,
+                    minHeight: this.state.laneStyle.maxHeight,
+                }
+            },
+            item: {
+                style: {
+                    height: parseInt(this.state.laneStyle.maxHeight / this.state.meta.maxCardCount)
                 }
             }
         }
+        console.log('itemHeight', params.item.style.height)
         return (
             <div key={params.content.key} className={params.content.class} style={params.content.style} >
                 {
                     this.state.items.map((item) => {
                         const key = `${params.content.key}/${item.title}`
-                        return <KanbanItem key={key} abspath={key} theme={this.theme} item={item}/>
+                        return (
+                            <KanbanItem 
+                                key={key}
+                                toKanban={this.toKanban}
+                                abspath={key}
+                                theme={this.theme}
+                                item={item}
+                                itemHeight={params.item.style.height}
+                                meta={this.state.meta}
+                            />
+                        )
                     })
                 }
             </div>
@@ -265,32 +306,36 @@ class KanbanItems extends React.Component {
 class KanbanItem extends React.Component {
     constructor(props)  {
         super(props)
+        this.toKanban = props.toKanban
         this.theme = props.theme
         this.state = {
             abspath: props.abspath,
             item: props.item,
+            itemHeight: props.itemHeight,
+            meta: props.meta,
             tip: false,
         }
         this.onClick = this.onClickHander.bind(this)
     }
-    onClickHander(e){
+    onClickHander(evt){
         console.log(this.state.item.name + ' is clicked!')
         this.setState({tip: !this.state.tip})
     }
     render() {
-        //const KanbanItemResponsible = withStyles(this.kanbanItemStyles)(KanbanItemController)
         const params = {
             boardItem: {
                 key: `${this.state.abspath}/wrapper`,
                 class: 'board-item',
-                style: {}
+                style: {
+                    maxHeight: this.state.itemHeight,
+                    margin: '0 0 0 0',
+                }
             },
             content: {
                 key: `${this.state.abspath}/content`,
                 class: 'board-item-content',
-                style: {}
             },
-            controller: {
+            face: {
                 key: `${this.state.abspath}/controller`,
                 theme: this.theme,
                 item: this.state.item
@@ -299,143 +344,366 @@ class KanbanItem extends React.Component {
         return (
             <div key={params.boardItem.key} className={params.boardItem.class} style={params.boardItem.style}>
                 <div key={params.content.key} className={params.content.class} style={params.content.style}>
-                    {/*
-                        <span key={this.state.abspath + '/msg'} onClick={this.onClick}>
-                            {this.state.item.name}
-                        </span>
-                    */}
-                    <KanbanItemController key={params.controller.key} abspath={params.controller.key} theme={params.controller.theme} item={params.controller.item} />
+                    <KanbanItemFace
+                        key={params.face.key}
+                        toKanban={this.toKanban}
+                        abspath={params.face.key}
+                        theme={params.face.theme}
+                        item={params.face.item}
+                        itemeight={this.state.itemHeight}
+                        meta={this.state.meta}
+                    />
                 </div>
             </div>
         )
     }
 }
 
-class KanbanItemController extends React.Component {
+class KanbanItemFace extends React.Component {
     constructor(props){
         super(props)
+        this.toKanban = props.toKanban
         this.theme = props.theme
         this.state = {
             abspath: props.abspath,
             item: props.item,
-            showDetail: false,
-            paper: this.kanbanItemStyles(props.theme),
-        }/*
-        this.propTypes = {
-            classes: PropTypes.object.isRequired,
-        }*/
-        this.handleOpenner = this.handleOpen.bind(this)
-        this.handleCloser = this.handleClose.bind(this)
-        this.modalStyle = this.getModalStyle.bind(this)
-        console.log(this)
+            itemHeight: props.itemHeight,
+            meta: props.meta,
+            dialogWidth: undefined,
+            normalTag: undefined,
+            showCard: false,
+        }
+        this.onOpen = this.handleOpen.bind(this)
+        this.onClose = this.handleClose.bind(this)
+        this.onEnter = this.handleEnter.bind(this)
     }
     handleOpen() {
-        this.setState({ showDetail: true })
+        this.setState({ showCard: true })
+    }
+    handleEnter(evt) {
+        const width = parseInt(evt.getBoundingClientRect().width)
+        console.log('entering', width)
+        this.setState( {dialogWidth: width} )
     }
     handleClose() {
-        this.setState({ showDetail: false })
-    }
-    kanbanItemStyles(theme) {
-        return {
-            position: 'absolute',
-            width: theme.spacing.unit * 50,
-            backgroundColor: '#000000',//theme.palette.background.paper,
-            boxShadow: theme.shadows[5],
-            padding: theme.spacing.unit * 4,
-        }
-    }
-    getModalStyle(theme) {
-        const top = 30 + 'px'
-        const left = 20 + 'vw'
-        return {
-            top: top,
-            left: left,
-            transform: `translate(${left}, ${top})`,
-            position: 'absolute',
-            width: theme.spacing.unit * 50,
-            backgroundColor: theme.palette.background.paper,
-            boxShadow: theme.shadows[5],
-            padding: theme.spacing.unit * 4,
-        }
+        this.setState({ showCard: false })
+        // TODO:ここにDB Update処理を追加する
     }
     render() {
+        const windowWidth = window.innerWidth
+        const params = {
+            dialog: {
+                maxWidth: windowWidth < 600 ? 'md' : 'sm',
+                fullWidth: true
+            },
+            gridConteiner: {
+                style: {
+                    alignContent: 'center',
+                    height: this.state.itemHeight,
+                }
+            },
+            gridItem: {
+                style: {
+                    alignItems: 'center',
+                    height: '100%',
+                }
+            }
+        }
+        const kanbanItemCard_place = (
+            this.state.dialogWidth
+            ? <KanbanItemCard item={this.state.item} dialogWidth={this.state.dialogWidth} />
+            : <div />
+        )
+        if (this.state.normalTag === undefined) {
+            const tagPromise = this.toKanban.emit('getNormalTagQuery')
+            tagPromise
+                .then((tags) => {
+                    console.log(tags)
+                    this.setState({normalTag: tags.slice(0,this.state.meta.maxTagCount)})
+                })
+                .catch((e) => {
+                    console.log(e)
+                })
+        }
+        console.log('normal tag', this.state.normalTag)
+        const xs = parseInt(12/this.state.meta.maxTagCount)
+        console.log('xs', xs)
         return (
             <div key={`${this.state.abspath}/div`}>
-                <Typography gutterBottom onClick={this.handleOpenner}>
-                    {this.state.item.title}
-                </Typography>
-                <Dialog
-                    open={this.state.showDetail}
-                    onClose={this.handleCloser}
-                    aria-labelledby="alert-dialog-title"
-                    aria-describedby="alert-dialog.description"
-                >
-                    <DialogTitle>
+                <Grid container key={`${this.state.abspath}/GridContainer/${xs}`} spacing={0} style={params.gridConteiner.style}>
+                    {/*
+                    <Typography gutterBottom onClick={this.onOpen}>
                         {this.state.item.title}
-                    </DialogTitle>
-                    <DialogContent>
-                        <DialogContentText>
-                            {this.state.item.description}
-                        </DialogContentText>
-                        <Grid container spacing={24}>
-                            <Grid item xs={6}>
-                                <FormControl aria-describedby="name-helper-text">
-                                    <InputLabel htmlFor="name-helper">Assignee</InputLabel>
-                                    <Input id="name-helper" value={this.state.item.asignee}/>
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={6}>
-                                <FormControl aria-describedby="name-helper-text">
-                                    <InputLabel htmlFor="name-helper">Date</InputLabel>
-                                    <Input id="name-helper" value={this.state.item.end}/>
-                                </FormControl>
-                            </Grid>
-                        </Grid>
-                    </DialogContent>
-                </Dialog>
-            </div>
-
-        )
-    }
-    _____render() {
-        return (
-            <div>
-                <Typography gutterBottom onClick={this.handleOpenner}>{this.state.item.title}</Typography>
-                <Modal
-                    aria-labelledby="simple-modal-title"
-                    aria-describedby="simple-modal-description"
-                    open={this.state.showDetail}
-                    onClose={this.handleCloser}
+                    </Typography>
+                    */}
+                    <Grid item xs={12}>
+                        <Typography onClick={this.onOpen}>
+                            {this.state.item.title}
+                        </Typography>
+                    </Grid>
+                    {
+                        this.state.normalTag ? this.state.normalTag.map((tag) => {
+                            return (
+                                <Grid item key={`${this.state.abspath}/chip/${tag.name}`} xs={xs} style={params.gridItem.style}>
+                                    <MiniChip
+                                        label={tag.name}
+                                        colorHex={tag.color ? tag.color : '#000000'}
+                                    />
+                                </Grid>
+                            )
+                        }) : []
+                    }
+                </Grid>
+                <Dialog
+                    id='card_dialog'
+                    open={this.state.showCard}
+                    onEnter={this.onEnter}
+                    onClose={this.onClose}
+                    aria-labelledby="card-dialog-title"
+                    aria-describedby="card-dialog-description"
+                    maxWidth={params.dialog.maxWidth}
+                    fullWidth={params.dialog.fullWidth}
                 >
-                    <div style={this.modalStyle(this.theme)}>
-                        <Grid container spacing={24}>
-                            <Grid item xs={12}>
-                                <Typography variant="title" id="modal-title">
-                                    {this.state.item.title}
-                                </Typography>
-                            </Grid>
-                            <Grid item xs={12}>
-                                <Typography variant="subheading" id="simple-modal-description">
-                                    {this.state.item.description}
-                                </Typography>
-                            </Grid>
-                            <Grid item xs={6}>
-                                <FormControl aria-describedby="name-helper-text">
-                                    <InputLabel htmlFor="name-helper">Assignee</InputLabel>
-                                    <Input id="name-helper" value={this.state.item.asignee}/>
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={6}>
-                                <FormControl aria-describedby="name-helper-text">
-                                    <InputLabel htmlFor="name-helper">Date</InputLabel>
-                                    <Input id="name-helper" value={this.state.item.end}/>
-                                </FormControl>
-                            </Grid>
-                        </Grid>
-                    </div>
-                </Modal>
+                    {kanbanItemCard_place}
+                </Dialog>
             </div>
         )
     }
 }
 
+class MiniChip extends React.Component {
+    
+    constructor(props) {
+        super(props)
+        this.state = {
+            label: props.label,
+            chipStyle: props.chipStyle,
+            labelStyle: props.labelStyle,
+            colorHex: props.colorHex,
+            width: props.width
+        }
+    }
+    colorCode2RGB(colorCode) {
+        const R = parseInt(colorCode.substr(1,2), 16)
+        const G = parseInt(colorCode.substr(3,2), 16)
+        const B = parseInt(colorCode.substr(5,2), 16)
+        return [R,G,B]
+    }
+    colorCode2RGBACSS(colorCode, alpha=1) {
+        const arr = this.colorCode2RGB(colorCode)
+        return `rgba(${arr.join(',')},${alpha})`
+    }
+    render() {
+        var params = {
+            wrap: {
+                style: {
+                    display: 'block',
+                    margin: '2px 2px',
+                    overflow: 'hidden'
+                }
+            },
+            chip: {
+                style: {}
+            },
+            label: {
+                style: {}
+            }
+        }
+        Object.assign(params.chip.style, this.state.chipStyle ? this.state.chipStyle : {})
+        Object.assign(params.label.style, this.state.labelStyle ? this.state.labelStyle : {})
+        //params.chip.style['display'] = 'none'
+        //params.chip.style['position'] = 'absolute'
+        params.chip.style['width'] = this.props.width ? this.props.width : (params.chip.style.width ? params.chip.style.width : '100%')
+        params.chip.style['borderRadius'] = params.chip.style.borderRadius ? params.chip.style.borderRadius : '0.75vw'
+        params.chip.style['backgroundColor'] = this.props.colorHex
+                                                ? this.colorCode2RGBACSS(this.props.colorHex, 0.5)
+                                                : (params.chip.style.color ? this.colorCode2RGBACSS(params.chip.style.color, 0.5) : this.colorCode2RGBACSS('#000000', 0.5))
+        params.chip.style['borderColor'] = params.chip.style.borderColor ? params.chip.style.borderColor : 'gray'
+        params.label.style['width'] = params.label.style.width ? params.label.style.width : '100%'
+        //params.label.style['margin'] = params.label.style.margin ? params.label.style.margin : '0.5vw'
+        params.label.style['fontSize'] = params.label.style.fontSize ? params.label.style.fontSize : '1vw'
+        params.label.style['fontColor'] = params.label.style.fontColor ? params.label.style.fontColor : 'white'
+        params.label.style['textAlign'] = params.label.style.textAlign ? params.label.style.textAlign : 'center'
+        params.label.style['textOverflow'] = params.label.style.textOverflow ? params.label.style.textOverflow : 'ellipsis'
+        return (
+            <div style={params.wrap.style}>
+                <div style={params.chip.style}>
+                    <p style={params.label.style}>
+                        {this.state.label}
+                    </p>
+                </div>
+            </div>
+        )
+    }
+}
+
+class KanbanItemCard extends React.Component {
+
+    constructor(props) {
+        super(props)
+        this.state = {
+            item: props.item,
+            dialogWidth: props.dialogWidth,
+        }
+        this.onAssigneeChange = this.handleAssigneeChange.bind(this)
+        this.onDeadlineChange = this.handleDeadlineChange.bind(this)
+    }
+    handleAssigneeChange(evt) {
+        console.log('assignee change', evt.target.value)
+    }
+    handleDeadlineChange(evt) {
+        console.log('deadline change', evt.target.value)
+    }
+    render() {
+        const dialogWidthRaio = 0.6
+        const dialogWidth = this.state.dialogWidth//parseInt(windowWidth * this.state.dialogWidthRaio)
+        const textWidth = parseInt(dialogWidth/4)
+        const params = {
+            textContainer: {
+                style: {
+                    marginTop: '10px',
+                    marginButtom: '10px',
+                    display: 'flex',
+                    floxWrap: 'wrap'
+                }
+            },
+            label: {
+                style: {
+                    fontSize: 12,
+                }
+            },
+            assignee: {
+                title: '作業者',
+                value: this.state.item.assignee,
+                style: {
+                    marginLeft: '5px',
+                    marginRight: '5px',
+                    width: textWidth
+                }
+            },
+            deadline: {
+                title: '期限',
+                value: this.state.item.deadline ? this.state.item.deadline : 'undefined',
+                style: {
+                    marginLeft: '5px',
+                    marginRight: '5px',
+                    width: textWidth
+                }
+            },
+            passedTime: {
+                title: '経過時間',
+                value: 0,
+                style: {
+                    marginLeft: '5px',
+                    marginRight: '5px',
+                    width: textWidth
+                }
+            },
+        }
+        return (
+            <div>
+                <DialogTitle id="card-dialog-title">
+                    {this.state.item.title}
+                </DialogTitle>
+                <DialogContent key={`dialogContent/${this.state.dialogWidth}`}>
+                    <DialogContentText id="card-dialog-description">
+                        {this.state.item.description}
+                    </DialogContentText>
+                    <Divider/>
+                    <div style={params.textContainer.style}>
+                        <FormControl>
+                            <InputLabel htmlFor="assigneeInput" style={params.label.style}>{params.assignee.title}</InputLabel>
+                            <Input
+                                id="assigneeInput"
+                                style={params.assignee.style}
+                                defaultValue={params.assignee.value}
+                                onChange={this.onAssigneeChange}
+                            />
+                        </FormControl>
+                        <FormControl>
+                            <InputLabel htmlFor="deadlineInput" style={params.label.style}>{params.deadline.title}</InputLabel>
+                            <Input
+                                id="deadlineInput"
+                                style={params.deadline.style}
+                                defaultValue={params.deadline.value}
+                                onChange={this.onDeadlineChange}
+                            />
+                        </FormControl>
+                        <TextField
+                            id="margin-none"
+                            style={params.passedTime.style}
+                            label={params.passedTime.title}
+                            defaultValue={params.passedTime.value}
+                        />
+                    </div>
+                    <Memo
+                        key={`memo/${this.state.dialogWidth}`}
+                        memoList={this.state.item.memo}
+                        width={dialogWidth*dialogWidthRaio}/>
+                </DialogContent>
+            </div>
+        )
+    }
+}
+
+
+class Memo extends React.Component {
+
+    constructor(props) {
+        super(props)
+        this.state = {
+            memoList: props.memoList,
+            width: props.width,
+            balloonColor: {
+                left: props.balloonColorLeft ? props.balloonColorLeft : '#D5EEFF',
+                right: props.balloonColorRight ? props.balloonColorRight : '#BFE9DB',
+            }
+        }
+    }
+    render() {
+        const params = {
+            top: {
+                style: {
+                    diaplay: 'block',
+                    marginTop: 10,
+                    marginButtom: 10,
+                }
+            },
+            createAt: {
+                style: {
+                    fontSize: 7,
+                    fontColor: '#cdd8df',
+                    textAlign: 'right'
+                }
+            }
+        }
+        return (
+            <div style={params.top.style}>
+                {
+                    this.state.memoList.map((memo) => {
+                        const direction = memo.isAssignee ? 'right' : 'left'
+                        const avator = (<MenuIcon/>) //TODO:アバターを変更
+                        const cardStyle = {
+                            backgroundColor: this.state.balloonColor[direction],
+                            boxShadow: '0px 0px'
+                        }
+                        return (
+                            <Balloon
+                                key={`memo/${memo.id}`}
+                                direction={direction}
+                                width={this.state.width}
+                                color={this.state.balloonColor[direction]}
+                                avator={avator}
+                            >
+                                <Card style={cardStyle}>
+                                    <Typography>{memo.content}</Typography>
+                                    <p style={params.createAt.style}>{memo.createAt}</p>
+                                </Card>
+                            </Balloon>
+                        )
+                    })
+                }
+            </div>
+        )
+    }
+}

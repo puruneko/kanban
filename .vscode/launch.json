@@ -1,0 +1,34 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "electron",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceRoot}",
+      "program": "${workspaceRoot}/src/js/main.js",
+      "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron",
+      "runtimeArgs": [
+        "--enable-logging"
+      ],
+      "args": [
+        "."
+      ],
+      "console":"integratedTerminal"
+    },
+    {
+      "name": "es2016",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceRoot}",
+      //"program": "js:dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run-script",
+        "js:dev"
+      ],
+      "console":"integratedTerminal",
+      "timeout":100000
+    }
+  ]
+}
