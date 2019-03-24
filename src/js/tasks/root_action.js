@@ -8,14 +8,14 @@ export default class RootAction {
     this.toWBS = WBS_dispatcher
     this.toKanban = Kanban_dispatcher
 
-    this.toRoot.on('loadSettings', this.loadSettings.bind(this))
+    this.toRoot.on('loadDatabase', this.loadDatabase.bind(this))
     this.toRoot.on('getTree', this.getTree.bind(this))
     this.toRoot.on('getKanbanDb', this.getKanbanDb.bind(this))
 
     this.toRoot.on('dbg', this.dbg.bind(this))
   }
 
-  loadSettings(path) {
+  loadDatabase(path) {
     var xmlDb = new xml_dispatcher(path)
     this.toRoot.emit('setXmlDb', xmlDb)
   }

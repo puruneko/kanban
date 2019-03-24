@@ -110,9 +110,13 @@
   /* disable selection/Copy of UIWebView */
   -webkit-touch-callout: none;
   /* disable the IOS popup when long-press on a link */
+  z-index: 9999;
+  /* for inner/outer content */
 }
 .vakata-context {
   display: none;
+  z-index: 9999;
+  /* for inner/outer content */
 }
 .vakata-context,
 .vakata-context ul {

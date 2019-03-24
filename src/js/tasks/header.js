@@ -3,6 +3,7 @@ import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import MenuIcon from '@material-ui/icons/Menu';
+import Button from '@material-ui/core/Button'
 
 import {MenuTemplateTypes, MenuTemplate} from './utils/menu_template'
 
@@ -14,15 +15,20 @@ export default class Header extends React.Component {
         this.toRoot = props.Root_dispatcher
         this.toWBS = props.WBS_dispatcher
         this.state = {
-          text: 'HEADER!'
+            height: props.height,
+            text: 'HEADER!'
         }
         this.dbLoader = this.handleDbLoader.bind(this)
+        this.onOpen = this.handleOpen.bind(this)
     }
     handleDbLoader(evt) {
         var file = evt.target.files[0]
         console.log(file.path)
         this.toRoot.emit('loadSettings', file.path)
         this.toWBS.emit('redraw')
+    }
+    handleOpen() {
+        this.toRoot.emit('drawerOpen')
     }
     render() {
         const params = {
@@ -66,7 +72,10 @@ export default class Header extends React.Component {
                 <AppBar position="static">
                     <Toolbar>
                         <div>
+                            {/*
                             <MenuTemplate name={'headerMenu'} icon={menuIcon} menuList={menuList} />
+                            */}
+                            <Button onClick={this.onOpen}>{menuIcon}</Button>
                         </div>
                         <Typography variant="title" color="inherit" style={params.typography.style}>
                             {this.state.text}

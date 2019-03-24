@@ -1,7 +1,5 @@
 import React from 'react'
 //import {ContextMenu, MenuItem, ContextMenuTrigger} from 'react-contextmenu'
-import WBSAction from './WBS_action'
-import WBSStore from './WBS_store'
 
 export default class WBS extends React.Component {
 
@@ -10,8 +8,8 @@ export default class WBS extends React.Component {
         this.toRoot = props.Root_dispatcher
         this.toWBS = props.WBS_dispatcher
         this.toKanban = props.Kanban_dispatcher
-        this.store = new WBSStore(this.toWBS)
-        this.action = new WBSAction(this.toRoot, this.toWBS, this.toKanban)
+        this.store = props.WBS_store
+        this.action = props.WBS_action
         this.state = {
             tree: [],
             contextMenu: this.toWBS.emit('getContextMenu')
@@ -19,7 +17,7 @@ export default class WBS extends React.Component {
 
         this.toWBS.on('update', this.update.bind(this))
 
-        this.init_treejs()
+        this.update()
     }
     // tree.jsの初期設定
     init_treejs() {
